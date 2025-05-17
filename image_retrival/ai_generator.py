@@ -7,7 +7,7 @@ from PIL import Image
 from io import BytesIO
 
 # ✅ Create the client with API key
-client = genai.Client(api_key="AIzaSyCwz4MMWJnOqV75oFHMoWaWuLQ5MJ_A1HQ")
+client = genai.Client(api_key="****************************************")
 
 def generate_image(prompt):
     try:
