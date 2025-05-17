@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pythagoras Theorem Visualization</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #animation-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: fit-content;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        #canvas {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+            display: block;
+            width: 800px;
+            height: 600px;
+        }
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .instructions {
+            margin-top: 20px;
+            background-color: #fffde7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #fbc02d;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 850px) {
+            #canvas {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 800/600;
+            }
+            #animation-container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Pythagoras Theorem Visualization</h1>
+    
+    <div id="animation-container">
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <div id="controls">
+            <button id="play-btn">Demonstrate Theorem</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Animation Scenario:</h3>
+        <p>Watch the visual proof of Pythagoras' theorem: <strong>a² + b² = c²</strong></p>
+        <ul>
+            <li>Right-angled triangle drawn with sides a, b, c</li>
+            <li>Squares constructed on each side</li>
+            <li>Areas calculated and compared</li>
+            <li>Final formula shown with actual values</li>
+        </ul>
+    </div>
+
+    <script src="pythagoras-visualizer.js"></script>
+</body>
+</html>

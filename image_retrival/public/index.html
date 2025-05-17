@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Retrieval System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 90%;
+            height: auto;
+            border: 2px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image Retrieval System</h1>
+    <p>Enter an image name to retrieve:</p>
+    <input type="text" id="imageName" placeholder="Enter image name">
+    <button onclick="fetchImage()">Get Image</button>
+
+    <br>
+    <img id="retrievedImage" alt="Retrieved Image">
+
+    <script>
+        function fetchImage() {
+            const imageName = document.getElementById("imageName").value.trim();
+            if (!imageName) {
+                alert("Please enter an image name.");
+                return;
+            }
+
+            const imageUrl = `http://localhost:3000/image/${encodeURIComponent(imageName)}`;
+            fetch(imageUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Image not found");
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const imgElement = document.getElementById("retrievedImage");
+                    imgElement.src = URL.createObjectURL(blob);
+                    imgElement.style.display = "block";
+                })
+                .catch(error => {
+                    alert("❌ Image not found!");
+                    console.error("Error:", error);
+                });
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Math Animation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        #animation-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: fit-content;
+        }
+        #canvas {
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            background-color: #ecf0f1;
+        }
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .instructions {
+            margin-top: 20px;
+            background-color: #fffde7;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #fbc02d;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Apple Math Visualization</h1>
+    
+    <div id="animation-container">
+        <canvas id="canvas" width="600" height="400"></canvas>
+        <div id="controls">
+            <button id="play-btn">Play Animation</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Animation Scenario:</h3>
+        <p>Watch 2 apples (left) and 3 apples (right) merge together to become 5 apples!</p>
+        <ul>
+            <li>Red apples move diagonally toward center</li>
+            <li>Numbers show the count of apples</li>
+            <li>Final group of 5 apples appears in center</li>
+        </ul>
+    </div>
+
+    <script src="visual-maker.js"></script>
+    <script>
+        // Simple loader to ensure DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const visualMaker = new VisualMaker();
+            
+            document.getElementById('play-btn').addEventListener('click', () => {
+                visualMaker.runScenario1();
+            });
+            
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                const ctx = document.getElementById('canvas').getContext('2d');
+                ctx.clearRect(0, 0, 600, 400);
+            });
+        });
+    </script>
+</body>
+</html>
