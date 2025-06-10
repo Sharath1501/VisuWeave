@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VisuWeave Voice-to-Scene</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .story-container {
+      position: relative;
+      width: 800px;
+      height: 600px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #story-canvas {
+      width: 100%;
+      height: 100%;
+      background-color: #87CEEB; /* Sky blue fallback */
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #start-btn {
+      background-color: #2ecc71;
+      font-size: 18px;
+      padding: 12px 30px;
+      margin-top: 20px;
+    }
+
+    #start-btn:hover {
+      background-color: #27ae60;
+    }
+
+    #transcript {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #34495e;
+    }
+  </style>
+</head>
+<body>
+  <h1>VisuWeave</h1>
+
+  <div class="story-container">
+    <canvas id="story-canvas" width="800" height="600"></canvas>
+  </div>
+
+  <button id="start-btn">VisuWeave Speak</button>
+
+  <div class="controls" style="display: none;">
+    <button id="replay-btn">Listening...</button>
+  </div>
+
+  <p id="transcript">Say keywords like "river", "crocodile", "talking", "jump", etc.</p>
+
+  <script>
+    const keywordSceneMap = {
+      'river': 0,
+      'crocodile': 1,
+      'talking': 2,
+      'ride': 3,
+      'midway': 4,
+      'point': 5,
+      'jump': 6,
+      'back': 7
+    };
+
+    class StoryAnimator {
+      constructor() {
+        this.canvas = document.getElementById('story-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.currentScene = 0;
+        this.images = {};
+        this.isAnimating = false;
+        this.supportedExtensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+
+        this.scenes = [
+          { bg: 'river-scene', characters: [{ img: 'monkey-on-tree', x: 600, y: 100, scale: 0.8 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-on-tree', x: 600, y: 100, scale: 0.8 }, { img: 'crocodile-in-water', x: 200, y: 500, scale: 0.7 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-talking', x: 600, y: 100, scale: 0.8 }, { img: 'crocodile-talking', x: 500, y: 400, scale: 0.7 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-riding', x: 300, y: 325, scale: 0.5 }, { img: 'crocodile-in-water', x: 300, y: 400, scale: 0.5 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-riding', x: 500, y: 300, scale: 0.7 }, { img: 'crocodile-angry', x: 500, y: 400, scale: 0.7 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-pointing', x: 520, y: 310, scale: 0.5 }, { img: 'crocodile-confused', x: 500, y: 370, scale: 0.5 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-jumping', x: 600, y: 200, scale: 0.6 }, { img: 'crocodile-angry', x: 500, y: 370, scale: 0.6 }] },
+          { bg: 'river-scene', characters: [{ img: 'monkey-on-tree', x: 600, y: 100, scale: 0.8 }, { img: 'crocodile-confused', x: 500, y: 370, scale: 0.7 }] }
+        ];
+
+        document.getElementById('start-btn').addEventListener('click', () => {
+          this.startStory();
+          document.getElementById('start-btn').style.display = 'none';
+          document.querySelector('.controls').style.display = 'flex';
+        });
+
+        document.getElementById('replay-btn').addEventListener('click', () => {
+          this.navigateToScene(this.currentScene);
+        });
+      }
+
+      async startStory() {
+        await this.loadImages();
+        this.clearCanvas();
+        this.setupSpeechRecognition();
+      }
+
+      clearCanvas() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+
+      async loadImages() {
+        const imageNames = new Set();
+        this.scenes.forEach(scene => {
+          imageNames.add(scene.bg);
+          scene.characters.forEach(char => imageNames.add(char.img));
+        });
+
+        for (const name of imageNames) {
+          this.images[name] = await this.loadImageWithFallback(name);
+        }
+      }
+
+      async loadImageWithFallback(baseName) {
+        for (const ext of this.supportedExtensions) {
+          try {
+            const img = await this.loadImage(`images/${baseName}${ext}`);
+            return img;
+          } catch (e) { }
+        }
+        console.error(`Failed to load image: ${baseName}`);
+        return this.createPlaceholder(baseName);
+      }
+
+      loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(`Error loading: ${src}`);
+          img.src = src;
+        });
+      }
+
+      createPlaceholder(label) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ccc';
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.fillStyle = '#000';
+        ctx.font = '12px Arial';
+        ctx.fillText(label, 5, 50);
+        return canvas;
+      }
+
+      setupSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          alert("Speech Recognition is not supported in this browser.");
+          return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.lang = 'en-US';
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+          document.getElementById('transcript').textContent = "Heard: " + transcript;
+
+          for (let keyword in keywordSceneMap) {
+            if (transcript.includes(keyword)) {
+              const sceneIndex = keywordSceneMap[keyword];
+              this.navigateToScene(sceneIndex);
+              break;
+            }
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.error("Speech recognition error:", e.error);
+        };
+
+        recognition.start();
+      }
+
+      navigateToScene(sceneIndex) {
+        if (sceneIndex < 0 || sceneIndex >= this.scenes.length) return;
+        this.currentScene = sceneIndex;
+        this.renderScene(sceneIndex);
+      }
+
+      renderScene(sceneIndex) {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+
+        const scene = this.scenes[sceneIndex];
+        const prevScene = sceneIndex > 0 ? this.scenes[sceneIndex - 1] : null;
+
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        if (this.images[scene.bg]) {
+          this.ctx.drawImage(this.images[scene.bg], 0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        this.animateCharacters(scene, prevScene);
+      }
+
+      animateCharacters(scene, prevScene) {
+        const duration = 1500;
+        const startTime = performance.now();
+
+        const targets = scene.characters.map(char => ({
+          img: char.img,
+          targetX: char.x,
+          targetY: char.y,
+          targetScale: char.scale,
+          startX: prevScene ? (prevScene.characters.find(c => c.img === char.img)?.x || char.x) : char.x,
+          startY: prevScene ? (prevScene.characters.find(c => c.img === char.img)?.y || char.y) : char.y,
+          startScale: prevScene ? (prevScene.characters.find(c => c.img === char.img)?.scale || char.scale) : char.scale
+        }));
+
+        const animateFrame = (currentTime) => {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          if (this.images[scene.bg]) {
+            this.ctx.drawImage(this.images[scene.bg], 0, 0, this.canvas.width, this.canvas.height);
+          }
+
+          targets.forEach(target => {
+            const img = this.images[target.img];
+            const x = target.startX + (target.targetX - target.startX) * progress;
+            const y = target.startY + (target.targetY - target.startY) * progress;
+            const scale = target.startScale + (target.targetScale - target.startScale) * progress;
+
+            const width = img.width * scale;
+            const height = img.height * scale;
+
+            this.ctx.globalAlpha = (prevScene && !prevScene.characters.find(c => c.img === target.img)) ? progress : 1;
+            this.ctx.drawImage(img, x - width / 2, y - height / 2, width, height);
+          });
+
+          this.ctx.globalAlpha = 1;
+
+          if (progress < 1) {
+            requestAnimationFrame(animateFrame);
+          } else {
+            this.isAnimating = false;
+          }
+        };
+
+        requestAnimationFrame(animateFrame);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      new StoryAnimator();
+    });
+  </script>
+</body>
+</html>
